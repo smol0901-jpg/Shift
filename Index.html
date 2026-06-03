@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>NEURAL_ARCHITECT_PREMIUM++ v5.0 // Production Multi-Tool</title>
+    <title>NEURAL_ARCHITECT_PREMIUM++ v5.5 // LocalStorage Persistent Engine</title>
     <style>
         :root {
             --primary: #1a1c23;
@@ -250,8 +250,8 @@
 
 <div class="screen-only">
     <div class="system-header">
-        <div class="system-title">NEURAL_ARCHITECT_<span>PREMIUM++ v5.0</span></div>
-        <div style="font-size: 11px; color: var(--accent); font-weight: bold;">HACCP SEARCH MASK & TELEGRAM BOT ENGINE</div>
+        <div class="system-title">NEURAL_ARCHITECT_<span>PREMIUM++ v5.5</span></div>
+        <div style="font-size: 11px; color: var(--accent); font-weight: bold;">LOCALSTORAGE AUTO-PERSISTENCE ENGINE</div>
     </div>
 
     <div class="screen-layout">
@@ -260,7 +260,7 @@
             <h3>Локация и Помещение</h3>
             <div class="config-box">
                 <label>Название цеха / Кладовой</label>
-                <input type="text" id="facilityNameInput" value="Основной Сухой Склад" oninput="state.facilityName = this.value; init();">
+                <input type="text" id="facilityNameInput" value="" oninput="state.facilityName = this.value; saveToLocalStorage(); updateFacilityTitle();">
             </div>
 
             <h3>Поиск по маске / Реестру</h3>
@@ -298,9 +298,9 @@
             <h3>Интеграция с Telegram Bot API</h3>
             <div class="config-box" style="border-color: var(--tg-color);">
                 <label>Telegram Bot Token</label>
-                <input type="password" id="tgToken" placeholder="5544332211:AAH..." value="" onchange="state.tgToken = this.value">
+                <input type="password" id="tgToken" placeholder="5544332211:AAH..." value="" onchange="state.tgToken = this.value; saveToLocalStorage();">
                 <label>Chat ID / ID Канала</label>
-                <input type="text" id="tgChatId" placeholder="-10012345678" value="" onchange="state.tgChatId = this.value">
+                <input type="text" id="tgChatId" placeholder="-10012345678" value="" onchange="state.tgChatId = this.value; saveToLocalStorage();">
                 <button class="btn btn-telegram" style="margin-top:10px;" onclick="sendDataToTelegram()">✈️ Отправить матрицу в ТГ</button>
             </div>
         </div>
@@ -319,10 +319,11 @@
             <button class="btn btn-accent" style="width:200px;" onclick="addRack()">➕ Добавить стеллаж</button>
             <div id="racksList"></div>
             
-            <div style="display:flex; gap:10px; margin-top:15px;">
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-top:15px;">
                 <button class="btn" onclick="exportJSON()">💾 Экспорт Базы</button>
                 <button class="btn" onclick="document.getElementById('importFile').click()">📂 Импорт Базы</button>
             </div>
+            <button class="btn btn-danger" style="margin-top:5px; background: #c0392b;" onclick="resetToFactoryDefaults()">🔄 Сбросить локальную базу</button>
             <input type="file" id="importFile" style="display:none" onchange="importJSON(this)">
         </div>
 
@@ -336,7 +337,8 @@
 <div class="print-area" id="printArea"></div>
 
 <script>
-    let state = {
+    // Базовая конфигурация по умолчанию (демо-данные)
+    const defaultState = {
         facilityName: "Основной Сухой Склад",
         selectedRackId: null,
         searchQuery: "",
@@ -359,17 +361,61 @@
         ]
     };
 
+    let state = {};
     let draggingRack = null;
     let dragOffsetX = 0;
     let dragOffsetY = 0;
 
+    // Инициализация при старте
     function init() {
-        document.getElementById('mapFacilityTitle').innerText = state.facilityName;
+        loadFromLocalStorage();
+        document.getElementById('facilityNameInput').value = state.facilityName;
+        document.getElementById('tgToken').value = state.tgToken || "";
+        document.getElementById('tgChatId').value = state.tgChatId || "";
+        updateFacilityTitle();
+        renderAll();
+    }
+
+    function renderAll() {
         renderMap();
         renderRacksList();
         renderEditor();
         renderPrintCheckboxes();
     }
+
+    function updateFacilityTitle() {
+        document.getElementById('mapFacilityTitle').innerText = state.facilityName || "Без названия";
+    }
+
+    // --- НАСТРОЙКА LOCALSTORAGE ---
+    function saveToLocalStorage() {
+        // Сохраняем все, кроме динамического поискового запроса
+        const stateToSave = { ...state, searchQuery: "" };
+        localStorage.setItem('haccp_warehouse_db', JSON.stringify(stateToSave));
+    }
+
+    function loadFromLocalStorage() {
+        const localData = localStorage.getItem('haccp_warehouse_db');
+        if (localData) {
+            try {
+                state = JSON.parse(localData);
+                state.searchQuery = ""; // Сбрасываем строку поиска при загрузке
+            } catch (e) {
+                console.error("Ошибка парсинга localStorage, загружены демо-данные", e);
+                state = JSON.parse(JSON.stringify(defaultState));
+            }
+        } else {
+            state = JSON.parse(JSON.stringify(defaultState));
+        }
+    }
+
+    function resetToFactoryDefaults() {
+        if(confirm("Вы уверены, что хотите полностью стереть текущую планировку в браузере и восстановить демо-данные?")) {
+            localStorage.removeItem('haccp_warehouse_db');
+            init();
+        }
+    }
+    // -------------------------------
 
     // Слушатель [Delete]
     window.addEventListener('keydown', function(e) {
@@ -383,7 +429,7 @@
     // Поиск по маске
     function handleSearch(query) {
         state.searchQuery = query.toLowerCase().trim();
-        init();
+        renderAll();
     }
 
     function isRackMatchSearch(rack) {
@@ -446,7 +492,7 @@
         const rect = element.getBoundingClientRect();
         dragOffsetX = clientX - rect.left;
         dragOffsetY = clientY - rect.top;
-        init();
+        renderAll();
     }
 
     function dragMove(e) { handleMove(e.clientX, e.clientY); }
@@ -475,7 +521,13 @@
         }
     }
 
-    function dragEnd() { if (draggingRack) { draggingRack = null; init(); } }
+    function dragEnd() { 
+        if (draggingRack) { 
+            draggingRack = null; 
+            saveToLocalStorage(); // Сохраняем координаты после дропа
+            renderAll(); 
+        } 
+    }
     function touchEnd() { dragEnd(); }
 
     function renderRacksList() {
@@ -488,7 +540,7 @@
             
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span onclick="state.selectedRackId='${rack.id}'; init();" style="cursor:pointer; flex-grow:1; font-weight:bold;">
+                    <span onclick="state.selectedRackId='${rack.id}'; renderAll();" style="cursor:pointer; flex-grow:1; font-weight:bold;">
                         <span style="color:var(--accent);">[${rack.id}]</span> ${rack.name}
                     </span>
                     <span style="font-size:11px; color:var(--text-muted);">${rack.rotate || 0}°</span>
@@ -504,20 +556,29 @@
 
     function toggleRackVisibility(id) {
         const rack = state.racks.find(r => r.id === id);
-        if (rack) { rack.hidden = !rack.hidden; init(); }
+        if (rack) { 
+            rack.hidden = !rack.hidden; 
+            saveToLocalStorage();
+            renderAll(); 
+        }
     }
 
     function deleteRackById(id) {
         if(confirm(`Удалить конструкцию ${id}?`)) {
             state.racks = state.racks.filter(r => r.id !== id);
             if (state.selectedRackId === id) state.selectedRackId = null;
-            init();
+            saveToLocalStorage();
+            renderAll();
         }
     }
 
     function rotateSelectedRack(degrees) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        if(rack) { rack.rotate = ((rack.rotate || 0) + degrees) % 360; init(); }
+        if(rack) { 
+            rack.rotate = ((rack.rotate || 0) + degrees) % 360; 
+            saveToLocalStorage();
+            renderAll(); 
+        }
     }
 
     function renderEditor() {
@@ -598,6 +659,7 @@
 
     function renderPrintCheckboxes() {
         const box = document.getElementById('printRackCheckboxes');
+        if (!box) return;
         box.innerHTML = '';
         state.racks.forEach(r => {
             box.innerHTML += `
@@ -613,58 +675,80 @@
         document.getElementById('printSelectionBox').style.display = show ? 'block' : 'none';
     }
 
-    // Триада функций управления
+    // Триада функций управления с сохранением состояния
     function updateRackField(field, value) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         if(rack) {
             rack[field] = isNaN(value) || field === 'id' ? value : parseInt(value);
             if(field==='id') state.selectedRackId = value;
-            init();
+            saveToLocalStorage();
+            renderAll();
         }
     }
     function addRack() {
         const newId = "СТ-" + (state.racks.length + 1);
         state.racks.push({ id: newId, name: "Стеллаж сырья", x: 60, y: 60, w: 140, h: 80, rotate: 0, hidden: false, shelves: [] });
-        state.selectedRackId = newId; init();
+        state.selectedRackId = newId; 
+        saveToLocalStorage();
+        renderAll();
     }
     function addShelf() {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         if(rack) {
             const num = rack.shelves.length + 1;
             rack.shelves.push({ id: `${rack.id}-Я${num}`, name: `Полка ${num}`, cat: "dry", hidden: false, products: [] });
-            init();
+            saveToLocalStorage();
+            renderAll();
         }
     }
     function updateShelf(index, field, value) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        if(rack && rack.shelves[index]) { rack.shelves[index][field] = value; init(); }
+        if(rack && rack.shelves[index]) { 
+            rack.shelves[index][field] = value; 
+            saveToLocalStorage();
+            renderAll(); 
+        }
     }
     function toggleShelfVisibility(index) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        if(rack && rack.shelves[index]) { rack.shelves[index].hidden = !rack.shelves[index].hidden; init(); }
+        if(rack && rack.shelves[index]) { 
+            rack.shelves[index].hidden = !rack.shelves[index].hidden; 
+            saveToLocalStorage();
+            renderAll(); 
+        }
     }
     function deleteShelf(index) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        if(rack && confirm("Удалить ярус?")) { rack.shelves.splice(index, 1); init(); }
+        if(rack && confirm("Удалить ярус?")) { 
+            rack.shelves.splice(index, 1); 
+            saveToLocalStorage();
+            renderAll(); 
+        }
     }
     function addProduct(shelfIndex) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         rack.shelves[shelfIndex].products.push({ name: "Новое сырье", qty: "1 кг", hidden: false });
-        init();
+        saveToLocalStorage();
+        renderAll();
     }
     function updateProduct(shelfIndex, productIndex, field, value) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        rack.shelves[shelfIndex].products[productIndex][field] = value;
+        if(rack && rack.shelves[shelfIndex] && rack.shelves[shelfIndex].products[productIndex]) {
+            rack.shelves[shelfIndex].products[productIndex][field] = value;
+            saveToLocalStorage();
+        }
     }
     function toggleProductVisibility(shelfIndex, productIndex) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         rack.shelves[shelfIndex].products[productIndex].hidden = !rack.shelves[shelfIndex].products[productIndex].hidden;
-        init();
+        saveToLocalStorage();
+        renderAll();
     }
     function deleteProduct(shelfIndex, productIndex) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         rack.shelves[shelfIndex].products.splice(productIndex, 1);
-        init();
+        saveToLocalStorage();
+        renderAll();
     }
 
     // Расширенный Мастер Печати
@@ -737,7 +821,6 @@
                     </table>
                 </div>`;
         } else if (mode === 'raw_materials') {
-            // Режим чистого вывода наименований сырья
             const checkedBoxes = Array.from(document.querySelectorAll('input[name="printRackSel"]:checked')).map(cb => cb.value);
             let contentHTML = '';
 
@@ -812,15 +895,17 @@
 
     function exportJSON() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 4));
-        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "haccp_factory_v5.json");
+        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "haccp_factory_v5_5.json");
         a.click();
     }
+    
     function importJSON(input) {
         const file = input.files[0]; if (!file) return;
         const reader = new FileReader();
         reader.onload = function(e) { 
             state = JSON.parse(e.target.result); 
-            document.getElementById('facilityNameInput').value = state.facilityName || "";
+            state.searchQuery = "";
+            saveToLocalStorage(); // Перезаписываем localStorage импортированным файлом
             init(); 
         };
         reader.readAsText(file);
