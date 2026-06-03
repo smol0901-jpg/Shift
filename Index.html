@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>NEURAL_ARCHITECT_PREMIUM++ v4.5 // Ultimate Management Hub</title>
+    <title>NEURAL_ARCHITECT_PREMIUM++ v5.0 // Production Multi-Tool</title>
     <style>
         :root {
             --primary: #1a1c23;
@@ -17,6 +17,7 @@
             --danger: #ff4757;
             --danger-hover: #ff6b81;
             --warning: #ffa502;
+            --tg-color: #0088cc;
         }
 
         body {
@@ -50,13 +51,13 @@
 
         .screen-layout {
             display: grid;
-            grid-template-columns: 380px 1fr 440px;
+            grid-template-columns: 390px 1fr 450px;
             gap: 20px;
-            max-width: 1800px;
+            max-width: 1900px;
             margin: 0 auto;
         }
 
-        @media (max-width: 1300px) {
+        @media (max-width: 1400px) {
             .screen-layout { grid-template-columns: 1fr; }
             .panel { height: auto !important; }
         }
@@ -99,12 +100,10 @@
         .btn-danger { background: var(--danger); color: white; border: none; }
         .btn-danger:hover { background: var(--danger-hover); box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
         .btn-warning { background: var(--warning); color: #000; border: none; }
+        .btn-telegram { background: var(--tg-color); color: white; border: none; }
+        .btn-telegram:hover { background: #0077b3; box-shadow: 0 0 10px rgba(0, 136, 204, 0.4); }
         
-        .inline-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 5px;
-        }
+        .inline-actions { display: flex; gap: 5px; margin-top: 5px; }
         .inline-actions .btn { padding: 6px 8px; margin: 0; font-size: 10px; }
 
         /* Карта цеха */
@@ -150,6 +149,20 @@
             box-shadow: 0 0 20px rgba(0, 255, 135, 0.4);
             z-index: 20;
         }
+        .rack-element.search-match {
+            border-color: #f1c40f !important;
+            box-shadow: 0 0 25px rgba(241, 196, 15, 0.6) !important;
+            animation: pulse 1.5s infinite;
+        }
+        .rack-element.search-mismatch {
+            opacity: 0.15;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1) rotate(var(--r, 0deg)); }
+            50% { transform: scale(1.03) rotate(var(--r, 0deg)); }
+            100% { transform: scale(1) rotate(var(--r, 0deg)); }
+        }
 
         .list-item-box {
             padding: 10px; margin: 6px 0;
@@ -158,16 +171,11 @@
             border-radius: 6px;
             font-size: 12px;
         }
-        .list-item-box.active {
-            background: #1e3d30;
-            border-color: var(--accent);
-        }
-        .list-item-box.hidden-state {
-            opacity: 0.4;
-            border-style: dashed;
-        }
+        .list-item-box.active { background: #1e3d30; border-color: var(--accent); }
+        .list-item-box.hidden-state { opacity: 0.3; border-style: dashed; }
+        .list-item-box.search-highlight { border-color: #f1c40f; background: #3a341c; }
 
-        .print-selector-box {
+        .config-box {
             background: var(--primary);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -184,10 +192,11 @@
         }
         .product-sub-item.hidden-state { opacity: 0.3; }
 
-        label { display: block; margin: 10px 0 2px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); }
+        label { display: block; margin: 10px 0 2px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); font-weight: bold; }
         input, select {
             width: 100%; padding: 8px; background: var(--primary); border: 1px solid var(--border); border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 13px;
         }
+        input:focus, select:focus { border-color: var(--accent); outline: none; }
 
         .shelf-editor-item { background: var(--primary); border-left: 4px solid var(--accent); padding: 12px; margin-bottom: 15px; border-radius: 4px; }
         .shelf-editor-item.hidden-state { border-left-color: var(--warning); opacity: 0.4; }
@@ -204,6 +213,13 @@
             background: var(--primary-light);
         }
         .print-mode-option input { width: auto; }
+
+        .search-input-wrapper { position: relative; margin-bottom: 15px; }
+        
+        .rack-select-checkbox {
+            display: flex; align-items: center; gap: 8px; margin: 4px 0; font-size: 12px;
+        }
+        .rack-select-checkbox input { width: auto; }
 
         .print-area { display: none; }
 
@@ -234,56 +250,84 @@
 
 <div class="screen-only">
     <div class="system-header">
-        <div class="system-title">NEURAL_ARCHITECT_<span>PREMIUM++ v4.5</span></div>
-        <div style="font-size: 11px; color: var(--accent); font-weight: bold;">[DEL] KEY ACTIVE // VISIBILITY MODES ON</div>
+        <div class="system-title">NEURAL_ARCHITECT_<span>PREMIUM++ v5.0</span></div>
+        <div style="font-size: 11px; color: var(--accent); font-weight: bold;">HACCP SEARCH MASK & TELEGRAM BOT ENGINE</div>
     </div>
 
     <div class="screen-layout">
         
         <div class="panel">
+            <h3>Локация и Помещение</h3>
+            <div class="config-box">
+                <label>Название цеха / Кладовой</label>
+                <input type="text" id="facilityNameInput" value="Основной Сухой Склад" oninput="state.facilityName = this.value; init();">
+            </div>
+
+            <h3>Поиск по маске / Реестру</h3>
+            <div class="search-input-wrapper">
+                <input type="text" id="searchMask" placeholder="Введите имя товара, ID или ячейку..." oninput="handleSearch(this.value)">
+            </div>
+
             <h3>Диспетчер Печати</h3>
-            <div class="print-selector-box">
+            <div class="config-box">
                 <div class="print-mode-option" onclick="document.getElementById('m1').checked=true">
                     <input type="radio" id="m1" name="printMode" value="map" checked>
-                    <div><b>Вариант 1: Карта цеха</b><br><small style="color:var(--text-muted)">Схема А4 (активные элементы)</small></div>
+                    <div><b>Вариант 1: Карта цеха</b><br><small style="color:var(--text-muted)">Схема А4</small></div>
                 </div>
                 <div class="print-mode-option" onclick="document.getElementById('m2').checked=true">
                     <input type="radio" id="m2" name="printMode" value="labels">
-                    <div><b>Вариант 2: Маркировка полок</b><br><small style="color:var(--text-muted)">Ценники (без скрытых ярусов)</small></div>
+                    <div><b>Вариант 2: Маркировка полок</b><br><small style="color:var(--text-muted)">Разрезные этикетки ячеек</small></div>
                 </div>
                 <div class="print-mode-option" onclick="document.getElementById('m3').checked=true">
                     <input type="radio" id="m3" name="printMode" value="registry">
-                    <div><b>Вариант 3: Реестр/Матрица</b><br><small style="color:var(--text-muted)">Таблица сквозного аудита</small></div>
+                    <div><b>Вариант 3: Полный реестр</b><br><small style="color:var(--text-muted)">Сквозная таблица аудита СЭС</small></div>
                 </div>
+                <div class="print-mode-option" onclick="document.getElementById('m4').checked=true; togglePrintSelectionBox(true);">
+                    <input type="radio" id="m4" name="printMode" value="raw_materials">
+                    <div><b>Вариант 4: Выписка по сырью</b><br><small style="color:var(--text-muted)">Чистый список выбранных стеллажей</small></div>
+                </div>
+
+                <div id="printSelectionBox" style="display:none; padding:8px; background:var(--bg); border-radius:4px; margin-bottom:10px;">
+                    <span style="font-size:11px; color:var(--text-muted); font-weight:bold;">ВЫБЕРИТЕ СТЕЛЛАЖИ ДЛЯ ПЕЧАТИ:</span>
+                    <div id="printRackCheckboxes"></div>
+                </div>
+
                 <button class="btn btn-accent" style="margin-top: 5px;" onclick="executePrintMaster()">🖨️ Запустить печать</button>
             </div>
 
-            <hr style="border-color: var(--border);">
-            <h3>Реестр стеллажей</h3>
-            <button class="btn btn-accent" onclick="addRack()">➕ Добавить стеллаж</button>
-            <div id="racksList"></div>
-            
-            <hr style="border-color: var(--border); margin-top:15px;">
-            <h3>База данных</h3>
-            <button class="btn" onclick="exportJSON()">💾 Сохранить в файл</button>
-            <button class="btn" onclick="document.getElementById('importFile').click()">📂 Загрузить файл</button>
-            <input type="file" id="importFile" style="display:none" onchange="importJSON(this)">
+            <h3>Интеграция с Telegram Bot API</h3>
+            <div class="config-box" style="border-color: var(--tg-color);">
+                <label>Telegram Bot Token</label>
+                <input type="password" id="tgToken" placeholder="5544332211:AAH..." value="" onchange="state.tgToken = this.value">
+                <label>Chat ID / ID Канала</label>
+                <input type="text" id="tgChatId" placeholder="-10012345678" value="" onchange="state.tgChatId = this.value">
+                <button class="btn btn-telegram" style="margin-top:10px;" onclick="sendDataToTelegram()">✈️ Отправить матрицу в ТГ</button>
+            </div>
         </div>
 
         <div>
             <h3 style="margin-bottom: 10px; text-transform: uppercase; font-size: 11px; color: var(--text-muted)">
-                🗺️ Топология фабрики (Клик для выбора, [Delete] для удаления, Свайп для перемещения)
+                🗺️ Топология: <span id="mapFacilityTitle" style="color:#fff;"></span> (Перемещение свайпом / [DEL] удаление)
             </h3>
             <div class="map-container" id="mapContainer" 
                  onmousemove="dragMove(event)" onmouseup="dragEnd()" onmouseleave="dragEnd()"
                  ontouchmove="touchMove(event)" ontouchend="touchEnd()">
                 <div class="grid-bg"></div>
             </div>
+
+            <h3 style="margin-top:15px;">Реестр конструкций цеха</h3>
+            <button class="btn btn-accent" style="width:200px;" onclick="addRack()">➕ Добавить стеллаж</button>
+            <div id="racksList"></div>
+            
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button class="btn" onclick="exportJSON()">💾 Экспорт Базы</button>
+                <button class="btn" onclick="document.getElementById('importFile').click()">📂 Импорт Базы</button>
+            </div>
+            <input type="file" id="importFile" style="display:none" onchange="importJSON(this)">
         </div>
 
         <div class="panel" id="editorPanel">
             <h2>Тотальный редактор</h2>
-            <p style="color: var(--text-muted)">Выберите элемент на карте или в реестре для тонкой настройки структуры, состава полок и видимости.</p>
         </div>
 
     </div>
@@ -293,7 +337,11 @@
 
 <script>
     let state = {
+        facilityName: "Основной Сухой Склад",
         selectedRackId: null,
+        searchQuery: "",
+        tgToken: "",
+        tgChatId: "",
         haccpCategories: {
             "dry": { name: "Сухое сырье / Бакалея", color: "#27ae60" },
             "meat": { name: "Мясо сырое / ПФ", color: "#c0392b" },
@@ -302,10 +350,10 @@
         },
         racks: [
             {
-                id: "СТ-1", name: "Основной Стеллаж",
+                id: "СТ-1", name: "Стеллаж Специй",
                 x: 60, y: 80, w: 150, h: 80, rotate: 0, hidden: false,
                 shelves: [
-                    { id: "СТ1-Я1", name: "Полка 1", cat: "dry", hidden: false, products: [{ name: "Мука", qty: "50 кг", hidden: false }] }
+                    { id: "СТ1-Я1", name: "Полка 1", cat: "dry", hidden: false, products: [{ name: "Перец черный", qty: "5 кг", hidden: false }] }
                 ]
             }
         ]
@@ -316,43 +364,68 @@
     let dragOffsetY = 0;
 
     function init() {
+        document.getElementById('mapFacilityTitle').innerText = state.facilityName;
         renderMap();
         renderRacksList();
         renderEditor();
+        renderPrintCheckboxes();
     }
 
-    // Слушатель горячих клавиш (Удаление на кнопку Delete)
+    // Слушатель [Delete]
     window.addEventListener('keydown', function(e) {
-        // Если фокус находится в поле ввода, горячие клавиши не должны ломать ввод текста
         if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
-        
         if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedRackId) {
             e.preventDefault();
             deleteRackById(state.selectedRackId);
         }
     });
 
-    // Отрисовка интерактивной 2D карты
+    // Поиск по маске
+    function handleSearch(query) {
+        state.searchQuery = query.toLowerCase().trim();
+        init();
+    }
+
+    function isRackMatchSearch(rack) {
+        if (!state.searchQuery) return false;
+        if (rack.id.toLowerCase().includes(state.searchQuery) || rack.name.toLowerCase().includes(state.searchQuery)) return true;
+        
+        let match = false;
+        rack.shelves.forEach(shelf => {
+            if (shelf.id.toLowerCase().includes(state.searchQuery)) match = true;
+            shelf.products.forEach(p => {
+                if (p.name.toLowerCase().includes(state.searchQuery)) match = true;
+            });
+        });
+        return match;
+    }
+
+    // Отрисовка интерактивной карты
     function renderMap() {
         const container = document.getElementById('mapContainer');
         container.querySelectorAll('.rack-element').forEach(el => el.remove());
 
         state.racks.forEach(rack => {
-            if (rack.hidden) return; // Скрытые стеллажи на карту не выводим
+            if (rack.hidden) return;
 
             const el = document.createElement('div');
-            el.className = `rack-element ${state.selectedRackId === rack.id ? 'active' : ''}`;
+            let searchClass = '';
+            if (state.searchQuery) {
+                searchClass = isRackMatchSearch(rack) ? 'search-match' : 'search-mismatch';
+            }
+
+            el.className = `rack-element ${state.selectedRackId === rack.id ? 'active' : ''} ${searchClass}`;
             el.style.left = rack.x + 'px';
             el.style.top = rack.y + 'px';
             el.style.width = rack.w + 'px';
             el.style.height = rack.h + 'px';
+            el.style.setProperty('--r', `${rack.rotate || 0}deg`);
             el.style.transform = `rotate(${rack.rotate || 0}deg)`;
             
             el.innerHTML = `
                 <div style="font-size:10px; width:100%;">
                     <div style="color:var(--accent); font-weight:bold;">${rack.id}</div>
                     <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rack.name}</div>
-                    <div style="font-size:9px; color:var(--text-muted); margin-top:2px;">🔄 ${rack.rotate || 0}°</div>
                 </div>
             `;
             
@@ -405,25 +478,23 @@
     function dragEnd() { if (draggingRack) { draggingRack = null; init(); } }
     function touchEnd() { dragEnd(); }
 
-    // Рендер левого списка (реестра)
     function renderRacksList() {
         const list = document.getElementById('racksList');
         list.innerHTML = '';
         state.racks.forEach(rack => {
+            const isMatch = isRackMatchSearch(rack);
             const div = document.createElement('div');
-            div.className = `list-item-box ${state.selectedRackId === rack.id ? 'active' : ''} ${rack.hidden ? 'hidden-state' : ''}`;
+            div.className = `list-item-box ${state.selectedRackId === rack.id ? 'active' : ''} ${rack.hidden ? 'hidden-state' : ''} ${isMatch ? 'search-highlight' : ''}`;
             
             div.innerHTML = `
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span onclick="selectRack('${rack.id}')" style="cursor:pointer; flex-grow:1;">
+                    <span onclick="state.selectedRackId='${rack.id}'; init();" style="cursor:pointer; flex-grow:1; font-weight:bold;">
                         <span style="color:var(--accent);">[${rack.id}]</span> ${rack.name}
                     </span>
-                    <span style="font-size:11px; color:var(--text-muted); margin-right:5px;">${rack.rotate || 0}°</span>
+                    <span style="font-size:11px; color:var(--text-muted);">${rack.rotate || 0}°</span>
                 </div>
                 <div class="inline-actions">
-                    <button class="btn" style="background:#2d313f;" onclick="toggleRackVisibility('${rack.id}')">
-                        ${rack.hidden ? '👁️ Показать' : '🙈 Скрыть'}
-                    </button>
+                    <button class="btn" style="background:#2d313f;" onclick="toggleRackVisibility('${rack.id}')">${rack.hidden ? '👁️ Разблокировать' : '🙈 Скрыть'}</button>
                     <button class="btn btn-danger" onclick="deleteRackById('${rack.id}')">🗑️ Удалить</button>
                 </div>
             `;
@@ -431,19 +502,13 @@
         });
     }
 
-    function selectRack(id) {
-        state.selectedRackId = id;
-        init();
-    }
-
-    // Управление видимостью и удалением стеллажей
     function toggleRackVisibility(id) {
         const rack = state.racks.find(r => r.id === id);
         if (rack) { rack.hidden = !rack.hidden; init(); }
     }
 
     function deleteRackById(id) {
-        if(confirm(`Удалить стеллаж ${id} со всеми полками и товарами?`)) {
+        if(confirm(`Удалить конструкцию ${id}?`)) {
             state.racks = state.racks.filter(r => r.id !== id);
             if (state.selectedRackId === id) state.selectedRackId = null;
             init();
@@ -455,13 +520,12 @@
         if(rack) { rack.rotate = ((rack.rotate || 0) + degrees) % 360; init(); }
     }
 
-    // Рендер правого редактора параметров
     function renderEditor() {
         const panel = document.getElementById('editorPanel');
         const rack = state.racks.find(r => r.id === state.selectedRackId);
 
         if (!rack) {
-            panel.innerHTML = `<h2>Тотальный редактор</h2><p style="color: var(--text-muted)">Выберите элемент на карте производства или в левом реестре для конфигурации.</p>`;
+            panel.innerHTML = `<h2>Тотальный редактор</h2><p style="color: var(--text-muted)">Выберите любой стеллаж на схеме для работы с полками и сырьем.</p>`;
             return;
         }
 
@@ -477,13 +541,11 @@
                 productsHTML += `
                     <div class="product-sub-item ${prod.hidden ? 'hidden-state' : ''}">
                         <div style="display:flex; gap:5px; margin-bottom:5px;">
-                            <input type="text" value="${prod.name}" placeholder="Товар" onchange="updateProduct(${sIdx}, ${pIdx}, 'name', this.value)">
-                            <input type="text" value="${prod.qty}" style="width:80px;" placeholder="Кол-во" onchange="updateProduct(${sIdx}, ${pIdx}, 'qty', this.value)">
+                            <input type="text" value="${prod.name}" onchange="updateProduct(${sIdx}, ${pIdx}, 'name', this.value)">
+                            <input type="text" value="${prod.qty}" style="width:80px;" onchange="updateProduct(${sIdx}, ${pIdx}, 'qty', this.value)">
                         </div>
                         <div class="inline-actions">
-                            <button class="btn" style="background:#242731;" onclick="toggleProductVisibility(${sIdx}, ${pIdx})">
-                                ${prod.hidden ? '👁️ Включить' : '🙈 Скрыть'}
-                            </button>
+                            <button class="btn" style="background:#242731;" onclick="toggleProductVisibility(${sIdx}, ${pIdx})">${prod.hidden ? '👁️' : '🙈'}</button>
                             <button class="btn btn-danger" style="padding:4px;" onclick="deleteProduct(${sIdx}, ${pIdx})">🗑️</button>
                         </div>
                     </div>
@@ -492,25 +554,20 @@
 
             shelvesHTML += `
                 <div class="shelf-editor-item ${shelf.hidden ? 'hidden-state' : ''}">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <h4>Ярус: ${shelf.id} ${shelf.hidden ? '(СКРЫТ)' : ''}</h4>
-                    </div>
-                    <label>Код ячейки / Полки</label>
+                    <h4>Ярус: ${shelf.id}</h4>
+                    <label>Адрес ячейки</label>
                     <input type="text" value="${shelf.id}" onchange="updateShelf(${sIdx}, 'id', this.value)">
-                    <label>Регламент ХАССП</label>
+                    <label>Зона ХАССП</label>
                     <select onchange="updateShelf(${sIdx}, 'cat', this.value)">${options}</select>
                     
                     <div class="inline-actions">
-                        <button class="btn btn-warning" onclick="toggleShelfVisibility(${sIdx})">
-                            ${shelf.hidden ? '👁️ Показать ярус' : '🙈 Скрыть ярус'}
-                        </button>
-                        <button class="btn btn-danger" onclick="deleteShelf(${sIdx})">🗑️ Удалить ярус</button>
+                        <button class="btn btn-warning" onclick="toggleShelfVisibility(${sIdx})">${shelf.hidden ? '👁️ Включить' : '🙈 Скрыть ярус'}</button>
+                        <button class="btn btn-danger" onclick="deleteShelf(${sIdx})">🗑️ Удалить</button>
                     </div>
 
-                    <div style="margin-top:10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius:4px;">
-                        <div style="font-size:11px; font-weight:bold; color:var(--text-muted)">📦 Содержимое полки:</div>
+                    <div style="margin-top:10px;">
                         ${productsHTML}
-                        <button class="btn btn-accent" style="margin-top:8px; font-size:10px;" onclick="addProduct(${sIdx})">➕ Добавить слот товара</button>
+                        <button class="btn btn-accent" style="margin-top:8px; font-size:10px;" onclick="addProduct(${sIdx})">➕ Добавить сырье</button>
                     </div>
                 </div>
             `;
@@ -518,32 +575,45 @@
 
         panel.innerHTML = `
             <h2>Конфигурация: ${rack.id}</h2>
-            
-            <label style="color:var(--accent);">🔄 Геометрия и Ротация:</label>
+            <label>Управление ориентацией:</label>
             <div style="display:flex; gap:5px; margin-bottom:15px;">
-                <button class="btn btn-accent" style="background:#3498db; color:#fff;" onclick="rotateSelectedRack(90)">🔄 +90°</button>
-                <button class="btn btn-accent" style="background:#2980b9; color:#fff;" onclick="rotateSelectedRack(180)">🔄 180°</button>
-                <button class="btn btn-danger" onclick="updateRackField('rotate', 0)">Сбросить угол</button>
+                <button class="btn btn-accent" style="background:#3498db;" onclick="rotateSelectedRack(90)">🔄 +90°</button>
+                <button class="btn btn-accent" style="background:#2980b9;" onclick="rotateSelectedRack(180)">🔄 180°</button>
+                <button class="btn btn-danger" onclick="updateRackField('rotate', 0)">0°</button>
             </div>
 
-            <label>ID конструкции на карте</label>
+            <label>Код стеллажа</label>
             <input type="text" value="${rack.id}" onchange="updateRackField('id', this.value)">
-            <label>Наименование локации</label>
+            <label>Назначение конструкции</label>
             <input type="text" value="${rack.name}" onchange="updateRackField('name', this.value)">
-            
-            <div class="inline-actions" style="margin-top:15px;">
-                <button class="btn btn-warning" onclick="toggleRackVisibility('${rack.id}')">${rack.hidden ? '👁️ Сделать видимым' : '🙈 Временно скрыть стеллаж'}</button>
-                <button class="btn btn-danger" onclick="deleteRackById('${rack.id}')">🗑️ Полное удаление</button>
-            </div>
+            <label>Точный угол поворота (градусы)</label>
+            <input type="number" value="${rack.rotate || 0}" onchange="updateRackField('rotate', this.value)">
 
             <hr style="border-color:var(--border); margin:20px 0;">
-            <h3>Ярусы и Хранение</h3>
-            <button class="btn btn-accent" onclick="addShelf()">➕ Добавить полку (Ярус)</button>
+            <h3>Ярусы и Полки</h3>
+            <button class="btn btn-accent" onclick="addShelf()">➕ Добавить ярус полки</button>
             <div style="margin-top:15px;">${shelvesHTML}</div>
         `;
     }
 
-    // Базовые функции CRUD для Стеллажей, Полок и Товаров
+    function renderPrintCheckboxes() {
+        const box = document.getElementById('printRackCheckboxes');
+        box.innerHTML = '';
+        state.racks.forEach(r => {
+            box.innerHTML += `
+                <div class="rack-select-checkbox">
+                    <input type="checkbox" name="printRackSel" value="${r.id}" checked>
+                    <span style="color:#fff;">[${r.id}] ${r.name}</span>
+                </div>
+            `;
+        });
+    }
+
+    function togglePrintSelectionBox(show) {
+        document.getElementById('printSelectionBox').style.display = show ? 'block' : 'none';
+    }
+
+    // Триада функций управления
     function updateRackField(field, value) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         if(rack) {
@@ -554,10 +624,9 @@
     }
     function addRack() {
         const newId = "СТ-" + (state.racks.length + 1);
-        state.racks.push({ id: newId, name: "Новый Стеллаж", x: 60, y: 60, w: 140, h: 80, rotate: 0, hidden: false, shelves: [] });
+        state.racks.push({ id: newId, name: "Стеллаж сырья", x: 60, y: 60, w: 140, h: 80, rotate: 0, hidden: false, shelves: [] });
         state.selectedRackId = newId; init();
     }
-    
     function addShelf() {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
         if(rack) {
@@ -576,12 +645,11 @@
     }
     function deleteShelf(index) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        if(rack && confirm("Удалить этот ярус вместе с товарами?")) { rack.shelves.splice(index, 1); init(); }
+        if(rack && confirm("Удалить ярус?")) { rack.shelves.splice(index, 1); init(); }
     }
-
     function addProduct(shelfIndex) {
         const rack = state.racks.find(r => r.id === state.selectedRackId);
-        rack.shelves[shelfIndex].products.push({ name: "Новый товар", qty: "1 кг", hidden: false });
+        rack.shelves[shelfIndex].products.push({ name: "Новое сырье", qty: "1 кг", hidden: false });
         init();
     }
     function updateProduct(shelfIndex, productIndex, field, value) {
@@ -599,7 +667,7 @@
         init();
     }
 
-    // Логика Мастера Печати с фильтрацией скрытых элементов
+    // Расширенный Мастер Печати
     function executePrintMaster() {
         const mode = document.querySelector('input[name="printMode"]:checked').value;
         const printArea = document.getElementById('printArea');
@@ -608,18 +676,18 @@
         if (mode === 'map') {
             let racksHTML = '';
             state.racks.forEach(r => {
-                if (r.hidden) return; // Скрытые стеллажи не идут на карту печати
+                if (r.hidden) return;
                 racksHTML += `
                     <div class="print-map-rack" style="left:${r.x}px; top:${r.y}px; width:${r.w}px; height:${r.h}px; transform: rotate(${r.rotate || 0}deg);">
-                        <div>${r.id}<br><span style="font-size:7px; font-weight:normal;">${r.rotate || 0}°</span></div>
+                        <div>${r.id}<br><span style="font-size:8px; font-weight:normal;">${r.name}</span></div>
                     </div>
                 `;
             });
             printArea.innerHTML = `
                 <div class="print-map-page">
                     <div class="print-map-header">
-                        <div class="print-map-title">Технологическая карта-схема фабрики-кухни</div>
-                        <div>Стандарт HACCP</div>
+                        <div class="print-map-title">План-схема: ${state.facilityName}</div>
+                        <div>Стандартизация HACCP</div>
                     </div>
                     <div class="print-map-body">${racksHTML}</div>
                 </div>
@@ -630,18 +698,16 @@
             state.racks.forEach(rack => {
                 if (rack.hidden) return;
                 rack.shelves.forEach(shelf => {
-                    if (shelf.hidden) return; // Скрытые полки не печатаем
-                    
-                    // Фильтруем скрытые товары
+                    if (shelf.hidden) return;
                     let activeProducts = shelf.products.filter(p => !p.hidden);
                     let prods = activeProducts.map(p => `<span>${p.name} (${p.qty})</span>`).join(', ');
                     
                     const card = document.createElement('div');
                     card.className = 'label-card';
                     card.innerHTML = `
-                        <div class="label-header"><span>СТЕЛЛАЖ: ${rack.id}</span></div>
+                        <div class="label-header"><span>ЦЕХ: ${state.facilityName} // СТЕЛЛАЖ: ${rack.id}</span></div>
                         <div class="label-id">${shelf.id}</div>
-                        <div style="font-size:11px;"><b>Состав:</b> ${prods || 'Свободный ярус'}</div>
+                        <div style="font-size:11px;"><b>Сырье:</b> ${prods || 'Свободная ячейка'}</div>
                         <div class="label-haccp" style="background-color:${state.haccpCategories[shelf.cat].color} !important;">
                             ${state.haccpCategories[shelf.cat].name}
                         </div>
@@ -658,23 +724,105 @@
                 rack.shelves.forEach(shelf => {
                     if (shelf.hidden) return;
                     let activeProducts = shelf.products.filter(p => !p.hidden);
-                    rows += `<tr><td>${cnt++}</td><td>${rack.id}</td><td>${shelf.id}</td><td>${state.haccpCategories[shelf.cat].name}</td><td>${activeProducts.map(p => p.name).join(', ') || '—'}</td></tr>`;
+                    rows += `<tr><td>${cnt++}</td><td>${rack.id}</td><td>${shelf.id}</td><td>${state.haccpCategories[shelf.cat].name}</td><td>${activeProducts.map(p => `${p.name} (${p.qty})`).join(', ') || '—'}</td></tr>`;
                 });
             });
-            printArea.innerHTML = `<div class="print-registry-page"><h2>Сквозной реестр адресных ячеек</h2><table class="registry-table"><thead><tr><th>№</th><th>Стеллаж</th><th>Код ячейки</th><th>Зона ХАССП</th><th>Товары</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+            printArea.innerHTML = `
+                <div class="print-registry-page">
+                    <h2>Сквозной аудит-реестр ячеек хранения</h2>
+                    <p><b>Локация:</b> ${state.facilityName}</p>
+                    <table class="registry-table">
+                        <thead><tr><th>№</th><th>Конструкция</th><th>Код ячейки</th><th>Зона ХАССП</th><th>Текущее сырье</th></tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>`;
+        } else if (mode === 'raw_materials') {
+            // Режим чистого вывода наименований сырья
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="printRackSel"]:checked')).map(cb => cb.value);
+            let contentHTML = '';
+
+            state.racks.forEach(rack => {
+                if (!checkedBoxes.includes(rack.id) || rack.hidden) return;
+                let rackSyrje = [];
+                rack.shelves.forEach(s => {
+                    if (s.hidden) return;
+                    s.products.forEach(p => { if(!p.hidden) rackSyrje.push(`${p.name} (${p.qty}) [Ячейка: ${s.id}]`); });
+                });
+
+                contentHTML += `
+                    <div style="margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 10px;">
+                        <h3>📋 Стеллаж ${rack.id} (${rack.name})</h3>
+                        ${rackSyrje.length > 0 ? `<ul>${rackSyrje.map(item => `<li style="font-size:14px; margin:4px 0;">${item}</li>`).join('')}</ul>` : '<p style="font-style:italic; color:#7f8c8d;">Сырье на стеллаже отсутствует или скрыто</p>'}
+                    </div>
+                `;
+            });
+
+            printArea.innerHTML = `
+                <div class="print-registry-page">
+                    <h2>Выписка по сырью и запасам производственных зон</h2>
+                    <p><b>Подразделение/Цех:</b> ${state.facilityName}</p>
+                    <p><b>Дата выгрузки:</b> ${new Date().toLocaleDateString()}</p>
+                    <div style="margin-top:20px;">${contentHTML || '<p>Стеллажи для выписки не выбраны.</p>'}</div>
+                </div>
+            `;
         }
         window.print();
+        togglePrintSelectionBox(mode === 'raw_materials');
+    }
+
+    // Интеграция с Telegram Bot API
+    function sendDataToTelegram() {
+        if (!state.tgToken || !state.tgChatId) {
+            alert("Ошибка: Укажите Token бота и Chat ID в панели интеграции!");
+            return;
+        }
+
+        let message = `📦 *ОТЧЕТ ПО ХРАНЕНИЮ ДЛЯ ЦЕХА:* _${state.facilityName}_\n`;
+        message += `=============================\n\n`;
+
+        state.racks.forEach(rack => {
+            if (rack.hidden) return;
+            message += `🏗️ *Стеллаж:* ${rack.id} (${rack.name})\n`;
+            rack.shelves.forEach(shelf => {
+                if (shelf.hidden) return;
+                let goods = shelf.products.filter(p => !p.hidden).map(p => `${p.name} (${p.qty})`).join(', ');
+                message += `  └─ 📍 _Ячейка_ \`${shelf.id}\` [${state.haccpCategories[shelf.cat].name}]: ${goods || 'Пусто'}\n`;
+            });
+            message += `\n`;
+        });
+
+        const url = `https://api.telegram.org/bot${state.tgToken}/sendMessage`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                chat_id: state.tgChatId,
+                text: message,
+                parse_mode: 'Markdown'
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.ok) alert("🎉 Данные успешно отправлены в Telegram-канал!");
+            else alert("❌ Ошибка отправки Telegram API: " + data.description);
+        })
+        .catch(err => alert("❌ Критическая ошибка сети при отправке в ТГ: " + err));
     }
 
     function exportJSON() {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 4));
-        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "haccp_layout_v4_5.json");
+        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "haccp_factory_v5.json");
         a.click();
     }
     function importJSON(input) {
         const file = input.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) { state = JSON.parse(e.target.result); init(); };
+        reader.onload = function(e) { 
+            state = JSON.parse(e.target.result); 
+            document.getElementById('facilityNameInput').value = state.facilityName || "";
+            init(); 
+        };
         reader.readAsText(file);
     }
 
