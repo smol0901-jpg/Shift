@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>NEURAL_ARCHITECT_PREMIUM++ v4.5 // Ultimate Management Hub</title>
+    <style>
+        :root {
+            --primary: #1a1c23;
+            --primary-light: #242731;
+            --accent: #00ff87;
+            --accent-hover: #00e074;
+            --bg: #0f1115;
+            --card-bg: #1f222b;
+            --text: #f3f4f6;
+            --text-muted: #8a94a6;
+            --border: #2d313f;
+            --danger: #ff4757;
+            --danger-hover: #ff6b81;
+            --warning: #ffa502;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 20px;
+            color: var(--text);
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .system-header {
+            background: var(--card-bg);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .system-title {
+            font-size: 22px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ffffff;
+            text-shadow: 0 0 10px rgba(0, 255, 135, 0.3);
+        }
+        .system-title span { color: var(--accent); }
+
+        .screen-layout {
+            display: grid;
+            grid-template-columns: 380px 1fr 440px;
+            gap: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1300px) {
+            .screen-layout { grid-template-columns: 1fr; }
+            .panel { height: auto !important; }
+        }
+
+        .panel {
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            height: calc(100vh - 140px);
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        h2, h3, h4 { margin-top: 0; color: #fff; font-weight: 600; }
+        
+        .btn {
+            background: var(--primary-light);
+            color: #fff;
+            border: 1px solid var(--border);
+            padding: 10px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            margin-bottom: 8px;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+        .btn:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-accent { background: var(--accent); color: var(--primary); border: none; }
+        .btn-accent:hover { background: var(--accent-hover); color: var(--primary); box-shadow: 0 0 15px rgba(0, 255, 135, 0.4); }
+        .btn-danger { background: var(--danger); color: white; border: none; }
+        .btn-danger:hover { background: var(--danger-hover); box-shadow: 0 0 10px rgba(255, 71, 87, 0.4); }
+        .btn-warning { background: var(--warning); color: #000; border: none; }
+        
+        .inline-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .inline-actions .btn { padding: 6px 8px; margin: 0; font-size: 10px; }
+
+        /* Карта цеха */
+        .map-container {
+            position: relative;
+            background: #14161d;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            height: calc(100vh - 190px);
+            overflow: hidden;
+            touch-action: none;
+        }
+        .grid-bg {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-size: 20px 20px;
+            background-image: linear-gradient(to right, rgba(255,255,255,0.015) 1px, transparent 1px),
+                              linear-gradient(to bottom, rgba(255,255,255,0.015) 1px, transparent 1px);
+        }
+        
+        .rack-element {
+            position: absolute;
+            background: #2a2e3d;
+            color: white;
+            border: 2px solid #3f455c;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            cursor: move;
+            box-sizing: border-box;
+            padding: 5px;
+            z-index: 10;
+            transform-origin: center center;
+        }
+        .rack-element.active {
+            border-color: var(--accent);
+            background: #1e3d30;
+            box-shadow: 0 0 20px rgba(0, 255, 135, 0.4);
+            z-index: 20;
+        }
+
+        .list-item-box {
+            padding: 10px; margin: 6px 0;
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        .list-item-box.active {
+            background: #1e3d30;
+            border-color: var(--accent);
+        }
+        .list-item-box.hidden-state {
+            opacity: 0.4;
+            border-style: dashed;
+        }
+
+        .print-selector-box {
+            background: var(--primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+        }
+
+        .product-sub-item {
+            background: #14161d;
+            border: 1px dashed #3f455c;
+            padding: 8px;
+            margin-top: 5px;
+            border-radius: 4px;
+        }
+        .product-sub-item.hidden-state { opacity: 0.3; }
+
+        label { display: block; margin: 10px 0 2px; font-size: 11px; text-transform: uppercase; color: var(--text-muted); }
+        input, select {
+            width: 100%; padding: 8px; background: var(--primary); border: 1px solid var(--border); border-radius: 6px; color: #fff; box-sizing: border-box; font-size: 13px;
+        }
+
+        .shelf-editor-item { background: var(--primary); border-left: 4px solid var(--accent); padding: 12px; margin-bottom: 15px; border-radius: 4px; }
+        .shelf-editor-item.hidden-state { border-left-color: var(--warning); opacity: 0.4; }
+        
+        .print-mode-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            background: var(--primary-light);
+        }
+        .print-mode-option input { width: auto; }
+
+        .print-area { display: none; }
+
+        @media print {
+            .screen-only { display: none !important; }
+            body { background: white; padding: 0; margin: 0; color: #000; }
+            .print-area { display: block !important; }
+            
+            .print-map-page { width: 210mm; height: 297mm; padding: 15mm; box-sizing: border-box; position: relative; }
+            .print-map-header { border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+            .print-map-title { font-size: 20px; font-weight: bold; text-transform: uppercase; }
+            .print-map-body { width: 180mm; height: 180mm; border: 2px solid #000; position: relative; background: #fff; }
+            .print-map-rack { position: absolute; border: 2px solid #000; background: #e0e0e0; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 12px; box-sizing: border-box; transform-origin: center center; }
+
+            .print-grid-labels { display: grid; grid-template-columns: 1fr 1fr; width: 210mm; box-sizing: border-box; }
+            .label-card { width: 105mm; height: 74mm; border: 1px dashed #7f8c8d; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box; page-break-inside: avoid; }
+            .label-id { font-size: 32px; font-weight: bold; text-align: center; }
+            .label-haccp { color: white !important; text-align: center; font-weight: bold; padding: 6px; font-size: 11px; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-radius: 4px; }
+
+            .print-registry-page { width: 210mm; padding: 15mm; box-sizing: border-box; }
+            .registry-table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 12px; }
+            .registry-table th, .registry-table td { border: 1px solid #000; padding: 8px; }
+            .registry-table th { background: #f2f2f2; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="screen-only">
+    <div class="system-header">
+        <div class="system-title">NEURAL_ARCHITECT_<span>PREMIUM++ v4.5</span></div>
+        <div style="font-size: 11px; color: var(--accent); font-weight: bold;">[DEL] KEY ACTIVE // VISIBILITY MODES ON</div>
+    </div>
+
+    <div class="screen-layout">
+        
+        <div class="panel">
+            <h3>Диспетчер Печати</h3>
+            <div class="print-selector-box">
+                <div class="print-mode-option" onclick="document.getElementById('m1').checked=true">
+                    <input type="radio" id="m1" name="printMode" value="map" checked>
+                    <div><b>Вариант 1: Карта цеха</b><br><small style="color:var(--text-muted)">Схема А4 (активные элементы)</small></div>
+                </div>
+                <div class="print-mode-option" onclick="document.getElementById('m2').checked=true">
+                    <input type="radio" id="m2" name="printMode" value="labels">
+                    <div><b>Вариант 2: Маркировка полок</b><br><small style="color:var(--text-muted)">Ценники (без скрытых ярусов)</small></div>
+                </div>
+                <div class="print-mode-option" onclick="document.getElementById('m3').checked=true">
+                    <input type="radio" id="m3" name="printMode" value="registry">
+                    <div><b>Вариант 3: Реестр/Матрица</b><br><small style="color:var(--text-muted)">Таблица сквозного аудита</small></div>
+                </div>
+                <button class="btn btn-accent" style="margin-top: 5px;" onclick="executePrintMaster()">🖨️ Запустить печать</button>
+            </div>
+
+            <hr style="border-color: var(--border);">
+            <h3>Реестр стеллажей</h3>
+            <button class="btn btn-accent" onclick="addRack()">➕ Добавить стеллаж</button>
+            <div id="racksList"></div>
+            
+            <hr style="border-color: var(--border); margin-top:15px;">
+            <h3>База данных</h3>
+            <button class="btn" onclick="exportJSON()">💾 Сохранить в файл</button>
+            <button class="btn" onclick="document.getElementById('importFile').click()">📂 Загрузить файл</button>
+            <input type="file" id="importFile" style="display:none" onchange="importJSON(this)">
+        </div>
+
+        <div>
+            <h3 style="margin-bottom: 10px; text-transform: uppercase; font-size: 11px; color: var(--text-muted)">
+                🗺️ Топология фабрики (Клик для выбора, [Delete] для удаления, Свайп для перемещения)
+            </h3>
+            <div class="map-container" id="mapContainer" 
+                 onmousemove="dragMove(event)" onmouseup="dragEnd()" onmouseleave="dragEnd()"
+                 ontouchmove="touchMove(event)" ontouchend="touchEnd()">
+                <div class="grid-bg"></div>
+            </div>
+        </div>
+
+        <div class="panel" id="editorPanel">
+            <h2>Тотальный редактор</h2>
+            <p style="color: var(--text-muted)">Выберите элемент на карте или в реестре для тонкой настройки структуры, состава полок и видимости.</p>
+        </div>
+
+    </div>
+</div>
+
+<div class="print-area" id="printArea"></div>
+
+<script>
+    let state = {
+        selectedRackId: null,
+        haccpCategories: {
+            "dry": { name: "Сухое сырье / Бакалея", color: "#27ae60" },
+            "meat": { name: "Мясо сырое / ПФ", color: "#c0392b" },
+            "milk": { name: "Молочная продукция", color: "#2980b9" },
+            "ready": { name: "Готовая продукция", color: "#8e44ad" }
+        },
+        racks: [
+            {
+                id: "СТ-1", name: "Основной Стеллаж",
+                x: 60, y: 80, w: 150, h: 80, rotate: 0, hidden: false,
+                shelves: [
+                    { id: "СТ1-Я1", name: "Полка 1", cat: "dry", hidden: false, products: [{ name: "Мука", qty: "50 кг", hidden: false }] }
+                ]
+            }
+        ]
+    };
+
+    let draggingRack = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    function init() {
+        renderMap();
+        renderRacksList();
+        renderEditor();
+    }
+
+    // Слушатель горячих клавиш (Удаление на кнопку Delete)
+    window.addEventListener('keydown', function(e) {
+        // Если фокус находится в поле ввода, горячие клавиши не должны ломать ввод текста
+        if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') return;
+        
+        if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedRackId) {
+            e.preventDefault();
+            deleteRackById(state.selectedRackId);
+        }
+    });
+
+    // Отрисовка интерактивной 2D карты
+    function renderMap() {
+        const container = document.getElementById('mapContainer');
+        container.querySelectorAll('.rack-element').forEach(el => el.remove());
+
+        state.racks.forEach(rack => {
+            if (rack.hidden) return; // Скрытые стеллажи на карту не выводим
+
+            const el = document.createElement('div');
+            el.className = `rack-element ${state.selectedRackId === rack.id ? 'active' : ''}`;
+            el.style.left = rack.x + 'px';
+            el.style.top = rack.y + 'px';
+            el.style.width = rack.w + 'px';
+            el.style.height = rack.h + 'px';
+            el.style.transform = `rotate(${rack.rotate || 0}deg)`;
+            
+            el.innerHTML = `
+                <div style="font-size:10px; width:100%;">
+                    <div style="color:var(--accent); font-weight:bold;">${rack.id}</div>
+                    <div style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${rack.name}</div>
+                    <div style="font-size:9px; color:var(--text-muted); margin-top:2px;">🔄 ${rack.rotate || 0}°</div>
+                </div>
+            `;
+            
+            el.onmousedown = (e) => { startDrag(rack, e.clientX, e.clientY, el); e.stopPropagation(); };
+            el.ontouchstart = (e) => { 
+                const touch = e.touches[0];
+                startDrag(rack, touch.clientX, touch.clientY, el); 
+                e.stopPropagation(); 
+            };
+
+            container.appendChild(el);
+        });
+    }
+
+    function startDrag(rack, clientX, clientY, element) {
+        state.selectedRackId = rack.id;
+        draggingRack = rack;
+        const rect = element.getBoundingClientRect();
+        dragOffsetX = clientX - rect.left;
+        dragOffsetY = clientY - rect.top;
+        init();
+    }
+
+    function dragMove(e) { handleMove(e.clientX, e.clientY); }
+    function touchMove(e) { if(e.touches.length > 0) handleMove(e.touches[0].clientX, e.touches[0].clientY); }
+
+    function handleMove(clientX, clientY) {
+        if (!draggingRack) return;
+        const container = document.getElementById('mapContainer');
+        const rect = container.getBoundingClientRect();
+        
+        let newX = clientX - rect.left - dragOffsetX;
+        let newY = clientY - rect.top - dragOffsetY;
+
+        if (newX < 0) newX = 0;
+        if (newY < 0) newY = 0;
+        if (newX + draggingRack.w > rect.width) newX = rect.width - draggingRack.w;
+        if (newY + draggingRack.h > rect.height) newY = rect.height - draggingRack.h;
+
+        draggingRack.x = Math.round(newX);
+        draggingRack.y = Math.round(newY);
+
+        const activeEl = container.querySelector('.rack-element.active');
+        if (activeEl) {
+            activeEl.style.left = draggingRack.x + 'px';
+            activeEl.style.top = draggingRack.y + 'px';
+        }
+    }
+
+    function dragEnd() { if (draggingRack) { draggingRack = null; init(); } }
+    function touchEnd() { dragEnd(); }
+
+    // Рендер левого списка (реестра)
+    function renderRacksList() {
+        const list = document.getElementById('racksList');
+        list.innerHTML = '';
+        state.racks.forEach(rack => {
+            const div = document.createElement('div');
+            div.className = `list-item-box ${state.selectedRackId === rack.id ? 'active' : ''} ${rack.hidden ? 'hidden-state' : ''}`;
+            
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span onclick="selectRack('${rack.id}')" style="cursor:pointer; flex-grow:1;">
+                        <span style="color:var(--accent);">[${rack.id}]</span> ${rack.name}
+                    </span>
+                    <span style="font-size:11px; color:var(--text-muted); margin-right:5px;">${rack.rotate || 0}°</span>
+                </div>
+                <div class="inline-actions">
+                    <button class="btn" style="background:#2d313f;" onclick="toggleRackVisibility('${rack.id}')">
+                        ${rack.hidden ? '👁️ Показать' : '🙈 Скрыть'}
+                    </button>
+                    <button class="btn btn-danger" onclick="deleteRackById('${rack.id}')">🗑️ Удалить</button>
+                </div>
+            `;
+            list.appendChild(div);
+        });
+    }
+
+    function selectRack(id) {
+        state.selectedRackId = id;
+        init();
+    }
+
+    // Управление видимостью и удалением стеллажей
+    function toggleRackVisibility(id) {
+        const rack = state.racks.find(r => r.id === id);
+        if (rack) { rack.hidden = !rack.hidden; init(); }
+    }
+
+    function deleteRackById(id) {
+        if(confirm(`Удалить стеллаж ${id} со всеми полками и товарами?`)) {
+            state.racks = state.racks.filter(r => r.id !== id);
+            if (state.selectedRackId === id) state.selectedRackId = null;
+            init();
+        }
+    }
+
+    function rotateSelectedRack(degrees) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack) { rack.rotate = ((rack.rotate || 0) + degrees) % 360; init(); }
+    }
+
+    // Рендер правого редактора параметров
+    function renderEditor() {
+        const panel = document.getElementById('editorPanel');
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+
+        if (!rack) {
+            panel.innerHTML = `<h2>Тотальный редактор</h2><p style="color: var(--text-muted)">Выберите элемент на карте производства или в левом реестре для конфигурации.</p>`;
+            return;
+        }
+
+        let shelvesHTML = '';
+        rack.shelves.forEach((shelf, sIdx) => {
+            let options = '';
+            for (let key in state.haccpCategories) {
+                options += `<option value="${key}" ${shelf.cat === key ? 'selected' : ''}>${state.haccpCategories[key].name}</option>`;
+            }
+
+            let productsHTML = '';
+            shelf.products.forEach((prod, pIdx) => {
+                productsHTML += `
+                    <div class="product-sub-item ${prod.hidden ? 'hidden-state' : ''}">
+                        <div style="display:flex; gap:5px; margin-bottom:5px;">
+                            <input type="text" value="${prod.name}" placeholder="Товар" onchange="updateProduct(${sIdx}, ${pIdx}, 'name', this.value)">
+                            <input type="text" value="${prod.qty}" style="width:80px;" placeholder="Кол-во" onchange="updateProduct(${sIdx}, ${pIdx}, 'qty', this.value)">
+                        </div>
+                        <div class="inline-actions">
+                            <button class="btn" style="background:#242731;" onclick="toggleProductVisibility(${sIdx}, ${pIdx})">
+                                ${prod.hidden ? '👁️ Включить' : '🙈 Скрыть'}
+                            </button>
+                            <button class="btn btn-danger" style="padding:4px;" onclick="deleteProduct(${sIdx}, ${pIdx})">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            shelvesHTML += `
+                <div class="shelf-editor-item ${shelf.hidden ? 'hidden-state' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <h4>Ярус: ${shelf.id} ${shelf.hidden ? '(СКРЫТ)' : ''}</h4>
+                    </div>
+                    <label>Код ячейки / Полки</label>
+                    <input type="text" value="${shelf.id}" onchange="updateShelf(${sIdx}, 'id', this.value)">
+                    <label>Регламент ХАССП</label>
+                    <select onchange="updateShelf(${sIdx}, 'cat', this.value)">${options}</select>
+                    
+                    <div class="inline-actions">
+                        <button class="btn btn-warning" onclick="toggleShelfVisibility(${sIdx})">
+                            ${shelf.hidden ? '👁️ Показать ярус' : '🙈 Скрыть ярус'}
+                        </button>
+                        <button class="btn btn-danger" onclick="deleteShelf(${sIdx})">🗑️ Удалить ярус</button>
+                    </div>
+
+                    <div style="margin-top:10px; background: rgba(0,0,0,0.2); padding: 5px; border-radius:4px;">
+                        <div style="font-size:11px; font-weight:bold; color:var(--text-muted)">📦 Содержимое полки:</div>
+                        ${productsHTML}
+                        <button class="btn btn-accent" style="margin-top:8px; font-size:10px;" onclick="addProduct(${sIdx})">➕ Добавить слот товара</button>
+                    </div>
+                </div>
+            `;
+        });
+
+        panel.innerHTML = `
+            <h2>Конфигурация: ${rack.id}</h2>
+            
+            <label style="color:var(--accent);">🔄 Геометрия и Ротация:</label>
+            <div style="display:flex; gap:5px; margin-bottom:15px;">
+                <button class="btn btn-accent" style="background:#3498db; color:#fff;" onclick="rotateSelectedRack(90)">🔄 +90°</button>
+                <button class="btn btn-accent" style="background:#2980b9; color:#fff;" onclick="rotateSelectedRack(180)">🔄 180°</button>
+                <button class="btn btn-danger" onclick="updateRackField('rotate', 0)">Сбросить угол</button>
+            </div>
+
+            <label>ID конструкции на карте</label>
+            <input type="text" value="${rack.id}" onchange="updateRackField('id', this.value)">
+            <label>Наименование локации</label>
+            <input type="text" value="${rack.name}" onchange="updateRackField('name', this.value)">
+            
+            <div class="inline-actions" style="margin-top:15px;">
+                <button class="btn btn-warning" onclick="toggleRackVisibility('${rack.id}')">${rack.hidden ? '👁️ Сделать видимым' : '🙈 Временно скрыть стеллаж'}</button>
+                <button class="btn btn-danger" onclick="deleteRackById('${rack.id}')">🗑️ Полное удаление</button>
+            </div>
+
+            <hr style="border-color:var(--border); margin:20px 0;">
+            <h3>Ярусы и Хранение</h3>
+            <button class="btn btn-accent" onclick="addShelf()">➕ Добавить полку (Ярус)</button>
+            <div style="margin-top:15px;">${shelvesHTML}</div>
+        `;
+    }
+
+    // Базовые функции CRUD для Стеллажей, Полок и Товаров
+    function updateRackField(field, value) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack) {
+            rack[field] = isNaN(value) || field === 'id' ? value : parseInt(value);
+            if(field==='id') state.selectedRackId = value;
+            init();
+        }
+    }
+    function addRack() {
+        const newId = "СТ-" + (state.racks.length + 1);
+        state.racks.push({ id: newId, name: "Новый Стеллаж", x: 60, y: 60, w: 140, h: 80, rotate: 0, hidden: false, shelves: [] });
+        state.selectedRackId = newId; init();
+    }
+    
+    function addShelf() {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack) {
+            const num = rack.shelves.length + 1;
+            rack.shelves.push({ id: `${rack.id}-Я${num}`, name: `Полка ${num}`, cat: "dry", hidden: false, products: [] });
+            init();
+        }
+    }
+    function updateShelf(index, field, value) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack && rack.shelves[index]) { rack.shelves[index][field] = value; init(); }
+    }
+    function toggleShelfVisibility(index) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack && rack.shelves[index]) { rack.shelves[index].hidden = !rack.shelves[index].hidden; init(); }
+    }
+    function deleteShelf(index) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        if(rack && confirm("Удалить этот ярус вместе с товарами?")) { rack.shelves.splice(index, 1); init(); }
+    }
+
+    function addProduct(shelfIndex) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        rack.shelves[shelfIndex].products.push({ name: "Новый товар", qty: "1 кг", hidden: false });
+        init();
+    }
+    function updateProduct(shelfIndex, productIndex, field, value) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        rack.shelves[shelfIndex].products[productIndex][field] = value;
+    }
+    function toggleProductVisibility(shelfIndex, productIndex) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        rack.shelves[shelfIndex].products[productIndex].hidden = !rack.shelves[shelfIndex].products[productIndex].hidden;
+        init();
+    }
+    function deleteProduct(shelfIndex, productIndex) {
+        const rack = state.racks.find(r => r.id === state.selectedRackId);
+        rack.shelves[shelfIndex].products.splice(productIndex, 1);
+        init();
+    }
+
+    // Логика Мастера Печати с фильтрацией скрытых элементов
+    function executePrintMaster() {
+        const mode = document.querySelector('input[name="printMode"]:checked').value;
+        const printArea = document.getElementById('printArea');
+        printArea.innerHTML = '';
+
+        if (mode === 'map') {
+            let racksHTML = '';
+            state.racks.forEach(r => {
+                if (r.hidden) return; // Скрытые стеллажи не идут на карту печати
+                racksHTML += `
+                    <div class="print-map-rack" style="left:${r.x}px; top:${r.y}px; width:${r.w}px; height:${r.h}px; transform: rotate(${r.rotate || 0}deg);">
+                        <div>${r.id}<br><span style="font-size:7px; font-weight:normal;">${r.rotate || 0}°</span></div>
+                    </div>
+                `;
+            });
+            printArea.innerHTML = `
+                <div class="print-map-page">
+                    <div class="print-map-header">
+                        <div class="print-map-title">Технологическая карта-схема фабрики-кухни</div>
+                        <div>Стандарт HACCP</div>
+                    </div>
+                    <div class="print-map-body">${racksHTML}</div>
+                </div>
+            `;
+        } else if (mode === 'labels') {
+            const grid = document.createElement('div');
+            grid.className = 'print-grid-labels';
+            state.racks.forEach(rack => {
+                if (rack.hidden) return;
+                rack.shelves.forEach(shelf => {
+                    if (shelf.hidden) return; // Скрытые полки не печатаем
+                    
+                    // Фильтруем скрытые товары
+                    let activeProducts = shelf.products.filter(p => !p.hidden);
+                    let prods = activeProducts.map(p => `<span>${p.name} (${p.qty})</span>`).join(', ');
+                    
+                    const card = document.createElement('div');
+                    card.className = 'label-card';
+                    card.innerHTML = `
+                        <div class="label-header"><span>СТЕЛЛАЖ: ${rack.id}</span></div>
+                        <div class="label-id">${shelf.id}</div>
+                        <div style="font-size:11px;"><b>Состав:</b> ${prods || 'Свободный ярус'}</div>
+                        <div class="label-haccp" style="background-color:${state.haccpCategories[shelf.cat].color} !important;">
+                            ${state.haccpCategories[shelf.cat].name}
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            });
+            printArea.appendChild(grid);
+        } else if (mode === 'registry') {
+            let rows = '';
+            let cnt = 1;
+            state.racks.forEach(rack => {
+                if (rack.hidden) return;
+                rack.shelves.forEach(shelf => {
+                    if (shelf.hidden) return;
+                    let activeProducts = shelf.products.filter(p => !p.hidden);
+                    rows += `<tr><td>${cnt++}</td><td>${rack.id}</td><td>${shelf.id}</td><td>${state.haccpCategories[shelf.cat].name}</td><td>${activeProducts.map(p => p.name).join(', ') || '—'}</td></tr>`;
+                });
+            });
+            printArea.innerHTML = `<div class="print-registry-page"><h2>Сквозной реестр адресных ячеек</h2><table class="registry-table"><thead><tr><th>№</th><th>Стеллаж</th><th>Код ячейки</th><th>Зона ХАССП</th><th>Товары</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+        }
+        window.print();
+    }
+
+    function exportJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 4));
+        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", "haccp_layout_v4_5.json");
+        a.click();
+    }
+    function importJSON(input) {
+        const file = input.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { state = JSON.parse(e.target.result); init(); };
+        reader.readAsText(file);
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>
